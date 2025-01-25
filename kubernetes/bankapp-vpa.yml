@@ -1,0 +1,14 @@
+# VPA is for reccommendation only so that manual adjustment can be done
+apiVersion: autoscaling.k8s.io/va
+kind: VerticalPodAutoscaler
+metadata:
+  name: bankapp-vpa
+  namespace: bankapp-namespace
+spec: 
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bankapp-deploy
+  updatePloicy:
+    updateMode: off
+
