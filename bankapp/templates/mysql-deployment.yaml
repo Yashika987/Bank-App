@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bankapp.mysql.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mysql
+    {{- include "bankapp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.mysql.replicaCount }}
+  selector:
+    matchLabels:
+      app: mysql
+      {{- include "bankapp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: mysql
+        {{- include "bankapp.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: mysql
+        image: {{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag | default "8.0" }}
+        imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: bankapp-config
+              key: MYSQL_DATABASE
+        volumeMounts:
+        - name: mysql-pv-storage
+          mountPath: /var/lib/mysql
+          subPath: mysql-data
+      volumes:
+      - name: mysql-pv-storage
+        persistentVolumeClaim:
+          claimName: {{ .Values.mysql.persistence.existingClaim | default "mysql-pvc" }}
